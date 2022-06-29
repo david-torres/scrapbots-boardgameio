@@ -1,6 +1,5 @@
 // @ts-check
 import { INVALID_MOVE } from 'boardgame.io/core';
-import { move } from 'rfc6902/patch';
 
 const shuffle = (stack) => {
     for (let i = stack.length - 1; i > 0; i--) {
@@ -22,16 +21,10 @@ const draw = (stack, n) => {
 }
 
 const drawWithCycling = (G, ctx, n) => {
-    let hand, deck, discard
-    if (ctx.currentPlayer == 0) {
-        hand = G.p1Hand
-        deck = G.p1Deck
-        discard = G.p1Discard
-    } else {
-        hand = G.p2Hand
-        deck = G.p2Deck
-        discard = G.p2Discard
-    }
+    let hand = G.playerHand[ctx.currentPlayer]
+    let deck = G.playerDeck[ctx.currentPlayer]
+    let discard = G.playerDiscard[ctx.currentPlayer]
+
     let cards = draw(deck, n)
 
     if (cards.length < n) {
@@ -76,14 +69,9 @@ const getOpposingLaneIndex = (i) => {
 
 const cleanupPhase = (G, ctx) => {
     console.log('cleanupPhase')
-    let hand, discard
-    if (ctx.currentPlayer == 0) {
-        hand = G.p1Hand
-        discard = G.p1Discard
-    } else {
-        hand = G.p2Hand
-        discard = G.p2Discard
-    }
+    let hand = G.playerHand[ctx.currentPlayer]
+    let deck = G.playerDeck[ctx.currentPlayer]
+    let discard = G.playerDiscard[ctx.currentPlayer]
 
     discard = discard.concat(hand)
 
@@ -95,16 +83,9 @@ const cleanupPhase = (G, ctx) => {
 
 const drawPhase = (G, ctx) => {
     console.log('drawPhase')
-    let hand, deck, discard
-    if (ctx.currentPlayer == 0) {
-        hand = G.p1Hand
-        deck = G.p1Deck
-        discard = G.p1Discard
-    } else {
-        hand = G.p2Hand
-        deck = G.p2Deck
-        discard = G.p2Discard
-    }
+    let hand = G.playerHand[ctx.currentPlayer]
+    let deck = G.playerDeck[ctx.currentPlayer]
+    let discard = G.playerDiscard[ctx.currentPlayer]
 
     ({ hand, deck, discard } = drawWithCycling(G, ctx, DEFAULT_HAND_SIZE))
 
@@ -143,22 +124,18 @@ let market = draw(mainDeck, 10)
 const DEFAULT_HAND_SIZE = 5
 const INITIAL_GAME_STATE = {
     mainDeck,
-    p1Deck,
-    p1Hand,
-    p1Discard: [],
-    p1Lanes: Array(5).fill({
+    playerDeck: {0: p1Deck, 1: p2Deck},
+    playerHand: {0: p1Hand, 1: p2Hand},
+    playerDiscard: {0: [], 1: []},
+    playerLanes: {0: Array(5).fill({
         scrapbot: null,
         gadget: null,
         damage: 0
-    }),
-    p2Deck,
-    p2Hand,
-    p2Discard: [],
-    p2Lanes: Array(5).fill({
+    }), 1: Array(5).fill({
         scrapbot: null,
         gadget: null,
         damage: 0
-    }),
+    })},
     malfunctionDeck,
     market,
     marketServoids,
@@ -183,6 +160,7 @@ export const Scrapbots = {
                 start: true,
                 // use main moves list
                 next: 'cleanup',
+                maxMoves: 1,
                 endIf: (G, ctx) => {
                     console.log('check for main phase end')
                     return true
@@ -212,14 +190,8 @@ export const Scrapbots = {
     moves: {
         recycleScrapbotForScrap: (G, ctx, card) => {
             console.log(`Recycle ${card.name} for ${card.recycle} scrap (current: ${G.scrap})`)
-            let hand, discard
-            if (ctx.currentPlayer == 0) {
-                hand = G.p1Hand
-                discard = G.p1Discard
-            } else {
-                hand = G.p2Hand
-                discard = G.p2Discard
-            }
+            let hand = G.playerHand[ctx.currentPlayer]
+            let discard = G.playerDiscard[ctx.currentPlayer]
 
             if (card.type != 'scrapbot') return INVALID_MOVE;
             if (hand.findIndex(handCard => handCard.name == card.name) === -1) return INVALID_MOVE;
@@ -239,14 +211,8 @@ export const Scrapbots = {
         },
         recycleGadgetForScrap: (G, ctx, card) => {
             console.log(`Recycle ${card.name} for ${card.recycle} scrap (current: ${G.scrap})`)
-            let hand, discard
-            if (ctx.currentPlayer == 0) {
-                hand = G.p1Hand
-                discard = G.p1Discard
-            } else {
-                hand = G.p2Hand
-                discard = G.p2Discard
-            }
+            let hand = G.playerHand[ctx.currentPlayer]
+            let discard = G.playerDiscard[ctx.currentPlayer]
 
             if (card.type != 'gadget') return INVALID_MOVE;
             if (hand.findIndex(handCard => handCard.name == card.name) === -1) return INVALID_MOVE;
@@ -266,14 +232,8 @@ export const Scrapbots = {
         },
         recycleGadgetForEnergy: (G, ctx, card) => {
             console.log(`Recycle ${card.name} for ${card.recycle} energy (current: ${G.energy})`)
-            let hand, discard
-            if (ctx.currentPlayer == 0) {
-                hand = G.p1Hand
-                discard = G.p1Discard
-            } else {
-                hand = G.p2Hand
-                discard = G.p2Discard
-            }
+            let hand = G.playerHand[ctx.currentPlayer]
+            let discard = G.playerDiscard[ctx.currentPlayer]
 
             if (card.type != 'gadget') return INVALID_MOVE;
             if (hand.findIndex(handCard => handCard.name == card.name) === -1) return INVALID_MOVE;
@@ -294,12 +254,7 @@ export const Scrapbots = {
         buyFromMarket: (G, ctx, card) => {
             console.log(`Buying ${card.name} from market`)
             let market = G.market
-            let discard
-            if (ctx.currentPlayer == 0) {
-                discard = G.p1Discard
-            } else {
-                discard = G.p2Discard
-            }
+            let discard = G.playerDiscard[ctx.currentPlayer]
 
             if (G.scrap < card.cost) return INVALID_MOVE;
             if (market.findIndex(marketCard => marketCard.name == card.name) === -1) {
@@ -329,18 +284,12 @@ export const Scrapbots = {
         buyServoid: (G, ctx) => {
             console.log(`Buying Servoid from market`)
             let market = G.marketServoids
-            let discard
-
-            if (ctx.currentPlayer == 0) {
-                discard = G.p1Discard
-            } else {
-                discard = G.p2Discard
-            }
+            let discard = G.playerDiscard[ctx.currentPlayer]
 
             if (market.length === 0) return INVALID_MOVE;
             if (G.scrap < market[0].cost) return INVALID_MOVE;
 
-            let card = G.marketServoids.pop()
+            let card = market.pop()
 
             // pay for card
             G.scrap -= card.cost
@@ -351,18 +300,12 @@ export const Scrapbots = {
         buyPowerCell: (G, ctx) => {
             console.log(`Buying Power Cell from market`)
             let market = G.marketPowerCells
-            let discard
-
-            if (ctx.currentPlayer == 0) {
-                discard = G.p1Discard
-            } else {
-                discard = G.p2Discard
-            }
+            let discard = G.playerDiscard[ctx.currentPlayer]
 
             if (market.length === 0) return INVALID_MOVE;
             if (G.scrap < market[0].cost) return INVALID_MOVE;
 
-            let card = G.marketServoids.pop()
+            let card = market.pop()
 
             // pay for card
             G.scrap -= card.cost
@@ -372,14 +315,8 @@ export const Scrapbots = {
         },
         buildScrapbot: (G, ctx, card, laneIndex) => {
             console.log(`Building ${card.name} in lane ${laneIndex}`)
-            let hand, lanes
-            if (ctx.currentPlayer == 0) {
-                hand = G.p1Hand
-                lanes = G.p1Lanes
-            } else {
-                hand = G.p2Hand
-                lanes = G.p2Lanes
-            }
+            let hand = G.playerHand[ctx.currentPlayer]
+            let lanes = G.playerLanes[ctx.currentPlayer]
 
             if (card.type != 'scrapbot') return INVALID_MOVE;
             if (hand.findIndex(handCard => handCard.name == card.name) === -1) return INVALID_MOVE;
@@ -406,18 +343,11 @@ export const Scrapbots = {
         // },
         attack: (G, ctx, laneIndex) => {
             console.log(`Attacking from lane ${laneIndex}`)
-            let discard, opposingDiscard, lanes, opposingLanes
-            if (ctx.currentPlayer == 0) {
-                discard = G.p1Discard
-                opposingDiscard = G.p2Discard
-                lanes = G.p1Lanes
-                opposingLanes = G.p2Lanes
-            } else {
-                discard = G.p2Discard
-                opposingDiscard = G.p1Discard
-                lanes = G.p2Lanes
-                opposingLanes = G.p1Lanes
-            }
+
+            let discard = G.playerDiscard[ctx.currentPlayer]
+            let lanes = G.playerLanes[ctx.currentPlayer]
+            let opposingDiscard = G.playerDiscard[(ctx.currentPlayer ? 0 : 1)]
+            let opposingLanes = G.playerLanes[(ctx.currentPlayer ? 0 : 1)]
 
             let attackingScrapbot = lanes[laneIndex].scrapbot
 
@@ -475,12 +405,12 @@ export const Scrapbots = {
         console.log('check for game end')
         // game ends when the malfunction deck is empty
         if (G.malfunctionDeck.length === 0) {
-            let p1Hand = G.p1Hand
-            let p1Deck = G.p1Deck
-            let p1Discard = G.p1Discard
-            let p2Hand = G.p2Hand
-            let p2Deck = G.p2Deck
-            let p2Discard = G.p2Discard
+            let p1Hand = G.playerHand[0]
+            let p1Deck = G.playerDeck[0]
+            let p1Discard = G.playerDiscard[0]
+            let p2Hand = G.playerHand[1]
+            let p2Deck = G.playerDeck[1]
+            let p2Discard = G.playerDiscard[1]
 
             let p1MalfunctionCount = 0
             let p2MalfunctionCount = 0
@@ -532,14 +462,8 @@ export const Scrapbots = {
         enumerate: (G, ctx) => {
             console.log(`player ${ctx.currentPlayer} enumerating moves.`)
             let moves = [];
-            let hand, lanes
-            if (ctx.currentPlayer == 0) {
-                hand = G.p1Hand
-                lanes = G.p1Lanes
-            } else {
-                hand = G.p2Hand
-                lanes = G.p2Lanes
-            }
+            let hand = G.playerHand[ctx.currentPlayer]
+            let lanes = G.playerLanes[ctx.currentPlayer]
 
             console.log(`State: Hand (${hand.length}), Scrap: (${G.scrap}), Energy: (${G.energy})`)
 
@@ -601,9 +525,7 @@ export const Scrapbots = {
 
 
             console.log('enumerated moves: ', moves.length)
-            // console.log('hand length: ', hand.length)
             // if (moves.length === 0) ctx.events.endPhase()
-            // if (moves.length === 0) return false
             if (moves.length === 0) console.log('should end phase...')
             return moves;
         },
