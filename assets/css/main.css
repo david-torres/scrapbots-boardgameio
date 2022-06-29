@@ -1,0 +1,6 @@
+.bg {
+  background-image: url("/assets/board.jpg"); 
+  background-size: contain;
+  width: 1000px;
+  height: 1000px;
+}

@@ -1,0 +1,58 @@
+[
+    {
+        "name": "Servoid",
+        "type": "scrapbot",
+        "faction": "scrap",
+        "color": "#FD151B",
+        "keyword": "servoid",
+        "text": "((passive)) dismantle this scrapbot after it attacks, <<activate>>Gain 2 scrap, trash this",
+        "cost": 2,
+        "recycle": 1,
+        "health": 1,
+        "attack": 1,
+        "energy": 1,
+        "icon": "https://i.imgur.com/uCq6sS7.png"
+    },
+    {
+        "name": "Servoid",
+        "type": "scrapbot",
+        "faction": "scrap",
+        "color": "#FD151B",
+        "keyword": "servoid",
+        "text": "((passive)) dismantle this scrapbot after it attacks, <<activate>>Gain 2 scrap, trash this",
+        "cost": 2,
+        "recycle": 1,
+        "health": 1,
+        "attack": 1,
+        "energy": 1,
+        "icon": "https://i.imgur.com/uCq6sS7.png"
+    },
+    {
+        "name": "Servoid",
+        "type": "scrapbot",
+        "faction": "scrap",
+        "color": "#FD151B",
+        "keyword": "servoid",
+        "text": "((passive)) dismantle this scrapbot after it attacks, <<activate>>Gain 2 scrap, trash this",
+        "cost": 2,
+        "recycle": 1,
+        "health": 1,
+        "attack": 1,
+        "energy": 1,
+        "icon": "https://i.imgur.com/uCq6sS7.png"
+    },
+    {
+        "name": "Servoid",
+        "type": "scrapbot",
+        "faction": "scrap",
+        "color": "#FD151B",
+        "keyword": "servoid",
+        "text": "((passive)) dismantle this scrapbot after it attacks, <<activate>>Gain 2 scrap, trash this",
+        "cost": 2,
+        "recycle": 1,
+        "health": 1,
+        "attack": 1,
+        "energy": 1,
+        "icon": "https://i.imgur.com/uCq6sS7.png"
+    }
+]
